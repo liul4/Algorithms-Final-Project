@@ -13,7 +13,9 @@ public class BusSystem {
 	public static void main(String[] args) {
 		ArrayList<String> stop_time = new ArrayList<String>();
 		ArrayList<String> stop = new ArrayList<String>();
+		ArrayList<String> stopRevised = new ArrayList<String>();
 		ArrayList<String> transfer = new ArrayList<String>();
+		TST<Integer> tst = new TST<Integer>();
 		
 		try {
 			FileReader file1 = new FileReader("stop_times");
@@ -36,6 +38,92 @@ public class BusSystem {
 			e.printStackTrace();
 		}
 		try {
+			FileReader file3 = new FileReader("stops");
+			Scanner scanner = new Scanner(file3);
+			scanner.nextLine();
+			while (scanner.hasNextLine()) {
+				//move keywords flagstop, wb, nb, sb, eb from start of the names to the end of the names
+				String line = scanner.nextLine();
+				String[] lines = line.split(",");
+				String[] names = lines[2].split(" ");
+				if (names[0].equals("WB") || names[0].equals("NB") || names[0].equals("SB") || names[0].equals("EB")) {
+					String[] newNames = new String [names.length];
+					for (int i = 0; i < names.length-1; i++) {
+						newNames[i] = names[i+1];
+					}
+					newNames[names.length-1] = names[0];
+					String name = "";
+					for (int i = 0; i < newNames.length; i++) {
+						if (i == newNames.length-1) {
+							name += newNames[i];
+						}
+						else {
+							name += newNames[i] + " ";
+						}
+					}
+					String newLine = "";
+					for (int i = 0; i < lines.length; i++) {
+						if (i == 2) {
+							newLine += name + ",";
+						}
+						else if (i == lines.length-1) {
+							newLine += lines[i];
+						}
+						else {
+							newLine += lines[i] + ",";
+						}
+					}
+					stopRevised.add(newLine);
+					//System.out.println(newLine);
+				}
+				else if (names[0].equals("FLAGSTOP")) {
+					String[] newNames = new String [names.length];
+					if (names[1].equals("WB") || names[1].equals("NB") || names[1].equals("SB") || names[1].equals("EB")) {
+						for (int i = 0; i < names.length-2; i++) {
+							newNames[i] = names[i+2];
+						}
+						newNames[names.length-2] = names[0];
+						newNames[names.length-1] = names[1];
+					}
+					else {
+						for (int i = 0; i < names.length-1; i++) {
+							newNames[i] = names[i+1];
+						}
+						newNames[names.length-1] = names[0];
+					}
+					String name = "";
+					for (int i = 0; i < newNames.length; i++) {
+						if (i == newNames.length-1) {
+							name += newNames[i];
+						}
+						else {
+							name += newNames[i] + " ";
+						}
+					}
+					String newLine = "";
+					for (int i = 0; i < lines.length; i++) {
+						if (i == 2) {
+							newLine += name + ",";
+						}
+						else if (i == lines.length-1) {
+							newLine += lines[i];
+						}
+						else {
+							newLine += lines[i] + ",";
+						}
+					}
+					stopRevised.add(newLine);
+					//System.out.println(newLine);
+				}
+				else {
+					stopRevised.add(line);
+					//System.out.println(line);
+				}
+			}
+		} catch (FileNotFoundException e) {		
+			e.printStackTrace();
+		}
+		try {
 			FileReader file3 = new FileReader("transfers");
 			Scanner scanner = new Scanner(file3);
 			scanner.nextLine();
@@ -51,6 +139,10 @@ public class BusSystem {
 			if (Integer.parseInt(numbers[0]) > nStop) {
 				nStop = Integer.parseInt(numbers[0]);
 			}
+		}
+		for (int i = 0; i < stopRevised.size(); i++) {
+			String[] numbers = stopRevised.get(i).split(",");
+			tst.put(numbers[2], i);
 		}
 		System.out.println(nStop);
 		EdgeWeightedDigraph G = new EdgeWeightedDigraph(nStop+1);
@@ -80,22 +172,47 @@ public class BusSystem {
 			}
 		}
 		System.out.println(nEdges);
+		
+		System.out.println("Type 'ShortestPath' to find shortest paths between 2 bus stops ");
+		System.out.println("Type 'SearchBusStop' to search for bus stops");
+		System.out.println("Type 'SearchTrip' to search for trips");
+		Scanner scanner = new Scanner(System.in);
+		String select = scanner.nextLine();
+		if (select.equals("ShortestPath")) {
+			System.out.println("Find shortest paths between 2 bus stops\nType 2 bus stop id, seperated by space character:");
+		    String inputLine = scanner.nextLine();
+		    String[] line = inputLine.split(" ");
+		    int stop1 = Integer.parseInt(line[0]);
+		    int stop2 = Integer.parseInt(line[1]);
+		    DijkstraSP sp = new DijkstraSP(G, stop1);
+		    if (sp.hasPathTo(stop2)) {
+	            StdOut.printf("Shortest path from %d to %d is: ", stop1, stop2);
+	            
+	            for (DirectedEdge e : sp.pathTo(stop2)) {
+	                StdOut.print(e + "   ");
+	            }
+	            StdOut.printf("Overall cost is: %.2f", sp.distTo(stop2));
+	            StdOut.println();
+	        }
+	        else {
+	            StdOut.printf("%d to %d         no path\n", stop1, stop2);
+	        }
+		}
+		
+		if (select.equals("SearchBusStop")) {
+			System.out.println("Search for a bus stop by full name or by the first few characters in the name: ");
+		    String inputLine = scanner.nextLine();
+		    //tst.get(inputLine);
+		    //tst.keysWithPrefix(inputLine);
+		    for (String key: tst.keysWithPrefix(inputLine)) {
+		    	int i = tst.get(key);
+		    	//stop.get(i);
+		    	System.out.println(stopRevised.get(i));
+		    }
+		}
+		
 		/*
-		for (int t = 0; t < G.V(); t++) {
-            if (sp.hasPathTo(t)) {
-                StdOut.printf("%d to %d (%.2f)  ", nEdges, t, sp.distTo(t));
-                for (DirectedEdge e : sp.pathTo(t)) {
-                    StdOut.print(e + "   ");
-                }
-                StdOut.println();
-            }
-            else {
-                StdOut.printf("%d to %d         no path\n", nEdges, t);
-            }
-        }
-        */
 		System.out.println("Find shortest paths between 2 bus stops\nType 2 bus stop id, seperated by space character:");
-	    Scanner scanner = new Scanner(System.in);
 	    String inputLine = scanner.nextLine();
 	    String[] line = inputLine.split(" ");
 	    int stop1 = Integer.parseInt(line[0]);
@@ -113,6 +230,20 @@ public class BusSystem {
         else {
             StdOut.printf("%d to %d         no path\n", stop1, stop2);
         }
+        
+	    System.out.println("Search for a bus stop by full name or by the first few characters in the name: ");
+	    Scanner scanner = new Scanner(System.in);
+	    String inputLine = scanner.nextLine();
+	    //tst.get(inputLine);
+	    //tst.keysWithPrefix(inputLine);
+	    for (String key: tst.keysWithPrefix(inputLine)) {
+	    	int i = tst.get(key);
+	    	//stop.get(i);
+	    	System.out.println(stopRevised.get(i));
+	    }
+	    
+	    */
+	    //System.out.println(tst.keysWithPrefix(inputLine));
 	}
-
+	
 }
