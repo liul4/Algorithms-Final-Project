@@ -23,7 +23,39 @@ public class BusSystem {
 			Scanner stoptime = new Scanner(file1);
 			stoptime.nextLine();
 			while (stoptime.hasNextLine()) {
-				stop_time.add(stoptime.nextLine());
+				//Remove lines with invalid stop_times
+				String line = stoptime.nextLine();
+				String[] lines = line.split(",");
+				String[] times = lines[1].split(":");
+				String hours = "0";
+				String timeFormat = lines[1];
+				if (times[0].charAt(0) == ' ') {
+					for (int j = 0; j< times[0].chars().count()-1; j++) {
+						hours += times[0].charAt(j+1);
+					}
+					timeFormat = "0";
+					for (int j = 0; j< lines[1].chars().count()-1; j++) {
+						timeFormat += lines[1].charAt(j+1);
+					}
+				}
+				else {
+					hours = times[0];
+				}
+				if (Integer.parseInt(hours)<24 && Integer.parseInt(times[1])<60 && Integer.parseInt(times[2])<59) {
+					String newLine = "";
+					for (int j = 0; j< lines.length; j++) {
+						if (j == lines.length-1) {
+							newLine += lines[j];
+						}
+						else if (j == 1) {
+							newLine += timeFormat + ",";
+						}
+						else {
+							newLine += lines[j] + ",";
+						}
+					}
+					stop_time.add(newLine);
+				}
 			}
 		} catch (FileNotFoundException e) {	
 			e.printStackTrace();
@@ -75,7 +107,6 @@ public class BusSystem {
 						}
 					}
 					stopRevised.add(newLine);
-					//System.out.println(newLine);
 				}
 				else if (names[0].equals("FLAGSTOP")) {
 					String[] newNames = new String [names.length];
@@ -207,6 +238,7 @@ public class BusSystem {
 			            StdOut.printf("%d to %d         no path\n", stop1, stop2);
 			        }
 				}
+			
 				if (select.equals("SearchBusStop")) {
 					System.out.println("Search for a bus stop by full name or by the first few characters in the name: ");
 				    String inputLine = scanner.nextLine();
@@ -215,33 +247,51 @@ public class BusSystem {
 				    	System.out.println(stopRevised.get(i));
 				    }
 				}
-				
+			
 				if (select.equals("SearchTrip")) {
-					System.out.println("Searching for all trips with a given arrival time\nType an arrival time with the format 'hh:mm:ss': ");
-					String inputLine = scanner.nextLine();
-					if (searchTrip.get(inputLine) != null) {
-						int i = searchTrip.get(inputLine);
-						String time = stop_time.get(i);
-						String[] times = time.split(":");
-						if (Integer.parseInt(times[0])>24 || Integer.parseInt(times[1])>59 || Integer.parseInt(times[2])>59) {
-							System.out.println("Invalid input. Please try again.");
-						}
-						else {
-							System.out.println(stop_time.get(i));
+				System.out.println("Searching for all trips with a given arrival time\nType an arrival time with the format 'hh:mm:ss' (for example: 07:09:42): ");
+				String inputLine = scanner.nextLine();
+				if (searchTrip.get(inputLine) != null) {
+					int i = searchTrip.get(inputLine);
+					String line = stop_time.get(i);
+					String[] lines = line.split(",");
+					String[] times = lines[1].split(":");
+					String hours = "";
+					if (times[0].charAt(0) == ' ') {
+						for (int j = 0; j< times[0].chars().count()-1; j++) {
+							hours += times[0].charAt(j+1);
 						}
 					}
 					else {
-						System.out.println("Wrong format for time for bus stop. Please try again");	
+						hours = times[0];
+					}
+					if (Integer.parseInt(hours)>24 || Integer.parseInt(times[1])>59 || Integer.parseInt(times[2])>59) {
+						System.out.println("Invalid input. Please try again.");
+					}
+					else {
+						System.out.println(stop_time.get(i));	
 					}
 				}
-				
-				else if (!select.equals("Exit") || !select.equals("ShortestPath") || !select.equals("SearchBusStop") || !select.equals("SearchTrip")) {
-					System.out.println("Invalid input. Please try again.");	
+				else {
+					System.out.println("Wrong format. Please try again");	
 				}
+			}
+			
+			else if (!select.equals("Exit") && !select.equals("ShortestPath") && !select.equals("SearchBusStop") && !select.equals("SearchTrip")) {
+				System.out.println("You haven't selected a feature. Please try again.");	
+			}
 			} catch (NumberFormatException e) {	
 				//e.printStackTrace();
-				System.out.println("Invalie input. Please try again");
+				System.out.println("Invalid input. Please try again");
+			} catch (ArrayIndexOutOfBoundsException e) {	
+				//e.printStackTrace();
+				System.out.println("Invalid input. Please try again");
+			} catch (IllegalArgumentException e) {	
+				//e.printStackTrace();
+				System.out.println("Invalid stopID. Please try again");
 			}
+			
+			
 		}
 		
 	}
