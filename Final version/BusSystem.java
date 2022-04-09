@@ -8,6 +8,7 @@ import edu.princeton.cs.algs4.EdgeWeightedDigraph;
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdOut;
 import edu.princeton.cs.algs4.TST;
+import edu.princeton.cs.algs4.BST;
 public class BusSystem {
 
 	public static void main(String[] args) {
@@ -15,13 +16,15 @@ public class BusSystem {
 		ArrayList<String> stop = new ArrayList<String>();
 		ArrayList<String> stopRevised = new ArrayList<String>();
 		ArrayList<String> transfer = new ArrayList<String>();
+		ArrayList<String> timesList = new ArrayList<String>();
 		TST<Integer> tst = new TST<Integer>();
-		TST<Integer> searchTrip = new TST<Integer>();
+		BST<String, Integer> bst = new BST<String, Integer>();
 		
+		String stop_times_line1 = "";
 		try {
 			FileReader file1 = new FileReader("stop_times");
 			Scanner stoptime = new Scanner(file1);
-			stoptime.nextLine();
+			stop_times_line1 = stoptime.nextLine();
 			while (stoptime.hasNextLine()) {
 				//Remove lines with invalid stop_times
 				String line = stoptime.nextLine();
@@ -60,10 +63,11 @@ public class BusSystem {
 		} catch (FileNotFoundException e) {	
 			e.printStackTrace();
 		}
+		String stops_line1 = "";
 		try {
 			FileReader file2 = new FileReader("stops");
 			Scanner scanner = new Scanner(file2);
-			scanner.nextLine();
+			stops_line1 = scanner.nextLine();
 			while (scanner.hasNextLine()) {
 				stop.add(scanner.nextLine());
 			}
@@ -176,10 +180,6 @@ public class BusSystem {
 			String[] numbers = stopRevised.get(i).split(",");
 			tst.put(numbers[2], i);
 		}
-		for (int i = 0; i < stop_time.size(); i++) {
-			String[] numbers = stop_time.get(i).split(",");
-			searchTrip.put(numbers[1], i);
-		}
 		EdgeWeightedDigraph G = new EdgeWeightedDigraph(nStop+1);
 		int nEdges = 0;
 		for (int i = 0; i < transfer.size(); i++) {
@@ -227,7 +227,6 @@ public class BusSystem {
 				    DijkstraSP sp = new DijkstraSP(G, stop1);
 				    if (sp.hasPathTo(stop2)) {
 			            StdOut.printf("Shortest path from %d to %d is: ", stop1, stop2);
-			            
 			            for (DirectedEdge e : sp.pathTo(stop2)) {
 			                StdOut.print(e + "   ");
 			            }
@@ -242,53 +241,95 @@ public class BusSystem {
 				if (select.equals("SearchBusStop")) {
 					System.out.println("Search for a bus stop by full name or by the first few characters in the name: ");
 				    String inputLine = scanner.nextLine();
+				    int n = 0;
 				    for (String key: tst.keysWithPrefix(inputLine)) {
 				    	int i = tst.get(key);
+				    	if (n == 0) {
+				    		System.out.println(stops_line1);
+				    	}
 				    	System.out.println(stopRevised.get(i));
+				    	n++;
+				    }
+				    if (n == 0) {  // if no matching bus stops
+				    	System.out.println("No matching bus stops.\n");
 				    }
 				}
 			
 				if (select.equals("SearchTrip")) {
 				System.out.println("Searching for all trips with a given arrival time\nType an arrival time with the format 'hh:mm:ss' (for example: 07:09:42): ");
 				String inputLine = scanner.nextLine();
+				Collections.sort(stop_time);
+				int n = 0;
+				for (int i = 0; i < stop_time.size(); i++) {
+					String[] lines = stop_time.get(i).split(",");
+					if (lines[1].equals(inputLine)&&n==0){
+						System.out.println(stop_times_line1);
+						System.out.println(stop_time.get(i));
+						n++;
+					}
+					else if (lines[1].equals(inputLine)&&n==1){
+						System.out.println(stop_time.get(i));
+					}
+					if (i==stop_time.size()-1 && n==0) {
+						String[] t = inputLine.split(":");
+						if (Integer.parseInt(t[0])>0&&Integer.parseInt(t[0])<24&&Integer.parseInt(t[1])>0&&Integer.parseInt(t[1])<60&&Integer.parseInt(t[2])>0&&Integer.parseInt(t[2])<24) {
+							System.out.println("No matching trips.\n");
+						}
+						else {
+							System.out.println("Wrong format. Please try again\n");
+						}
+					}
+				}
+				/*
 				if (searchTrip.get(inputLine) != null) {
 					int i = searchTrip.get(inputLine);
 					String line = stop_time.get(i);
 					String[] lines = line.split(",");
 					String[] times = lines[1].split(":");
 					String hours = "";
+					
 					if (times[0].charAt(0) == ' ') {
 						for (int j = 0; j< times[0].chars().count()-1; j++) {
 							hours += times[0].charAt(j+1);
 						}
 					}
+					
 					else {
 						hours = times[0];
 					}
-					if (Integer.parseInt(hours)>24 || Integer.parseInt(times[1])>59 || Integer.parseInt(times[2])>59) {
-						System.out.println("Invalid input. Please try again.");
+					
+					if (Integer.parseInt(times[0])>24 || Integer.parseInt(times[1])>59 || Integer.parseInt(times[2])>59) {
+						System.out.println("Invalid time. Please try again.");
 					}
 					else {
-						System.out.println(stop_time.get(i));	
+						System.out.println(stop_times_line1);
+						
+						
+						for (String key:searchTrip.keysThatMatch(inputLine)) {
+							int j = searchTrip.get(key);
+							System.out.println(stop_time.get(j));	
+						}
 					}
 				}
+				
 				else {
-					System.out.println("Wrong format. Please try again");	
+					System.out.println("Wrong format. Please try again\n");	
 				}
+				*/
 			}
 			
 			else if (!select.equals("Exit") && !select.equals("ShortestPath") && !select.equals("SearchBusStop") && !select.equals("SearchTrip")) {
-				System.out.println("You haven't selected a feature. Please try again.");	
+				System.out.println("You haven't selected a feature. Please try again.\n");	
 			}
 			} catch (NumberFormatException e) {	
 				//e.printStackTrace();
-				System.out.println("Invalid input. Please try again");
+				System.out.println("Invalid input. Please try again\n");
 			} catch (ArrayIndexOutOfBoundsException e) {	
 				//e.printStackTrace();
-				System.out.println("Invalid input. Please try again");
+				System.out.println("Invalid input. Please try again\n");
 			} catch (IllegalArgumentException e) {	
 				//e.printStackTrace();
-				System.out.println("Invalid stopID. Please try again");
+				System.out.println("Invalid stopID. Please try again\n");
 			}
 			
 			
