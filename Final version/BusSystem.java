@@ -1,26 +1,22 @@
 import java.util.*;
 import java.io.*;
 
-import edu.princeton.cs.algs4.Queue;
 import edu.princeton.cs.algs4.DijkstraSP;
 import edu.princeton.cs.algs4.DirectedEdge;
 import edu.princeton.cs.algs4.EdgeWeightedDigraph;
-import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdOut;
 import edu.princeton.cs.algs4.TST;
-import edu.princeton.cs.algs4.BST;
-public class BusSystem {
 
+public class BusSystem {
 	public static void main(String[] args) {
 		ArrayList<String> stop_time = new ArrayList<String>();
 		ArrayList<String> stop = new ArrayList<String>();
 		ArrayList<String> stopRevised = new ArrayList<String>();
 		ArrayList<String> transfer = new ArrayList<String>();
-		ArrayList<String> timesList = new ArrayList<String>();
-		TST<Integer> tst = new TST<Integer>();
-		BST<String, Integer> bst = new BST<String, Integer>();
-		
+		TST<Integer> tst = new TST<Integer>();	
 		String stop_times_line1 = "";
+		String stops_line1 = "";
+		// read files from stop_times.txt
 		try {
 			FileReader file1 = new FileReader("stop_times");
 			Scanner stoptime = new Scanner(file1);
@@ -63,7 +59,7 @@ public class BusSystem {
 		} catch (FileNotFoundException e) {	
 			e.printStackTrace();
 		}
-		String stops_line1 = "";
+		// read files from stops.txt
 		try {
 			FileReader file2 = new FileReader("stops");
 			Scanner scanner = new Scanner(file2);
@@ -74,6 +70,7 @@ public class BusSystem {
 		} catch (FileNotFoundException e) {		
 			e.printStackTrace();
 		}
+		// read files from stops.txt and modify stop names
 		try {
 			FileReader file3 = new FileReader("stops");
 			Scanner scanner = new Scanner(file3);
@@ -149,16 +146,15 @@ public class BusSystem {
 						}
 					}
 					stopRevised.add(newLine);
-					//System.out.println(newLine);
 				}
 				else {
 					stopRevised.add(line);
-					//System.out.println(line);
 				}
 			}
 		} catch (FileNotFoundException e) {		
 			e.printStackTrace();
 		}
+		// read files from transfers.txt
 		try {
 			FileReader file3 = new FileReader("transfers");
 			Scanner scanner = new Scanner(file3);
@@ -206,8 +202,7 @@ public class BusSystem {
 			}
 		}
 		boolean exit = false;
-		boolean next = true;
-		while (!exit && next) {
+		while (!exit) {
 			System.out.println("Type 'ShortestPath' to find shortest paths between 2 bus stops ");
 			System.out.println("Type 'SearchBusStop' to search for bus stops");
 			System.out.println("Type 'SearchTrip' to search for trips");
@@ -218,6 +213,7 @@ public class BusSystem {
 				exit = true;
 			}
 			try {
+				// first feature : find shortest path
 				if (select.equals("ShortestPath")) {
 					System.out.println("Find shortest paths between 2 bus stops\nType 2 bus stop id, seperated by space character:");
 				    String inputLine = scanner.nextLine();
@@ -237,7 +233,7 @@ public class BusSystem {
 			            StdOut.printf("%d to %d         no path\n", stop1, stop2);
 			        }
 				}
-			
+				// second feature : search bus stops
 				if (select.equals("SearchBusStop")) {
 					System.out.println("Search for a bus stop by full name or by the first few characters in the name: ");
 				    String inputLine = scanner.nextLine();
@@ -254,7 +250,7 @@ public class BusSystem {
 				    	System.out.println("No matching bus stops.\n");
 				    }
 				}
-			
+				// third feature : search trips
 				if (select.equals("SearchTrip")) {
 				System.out.println("Searching for all trips with a given arrival time\nType an arrival time with the format 'hh:mm:ss' (for example: 07:09:42): ");
 				String inputLine = scanner.nextLine();
@@ -280,44 +276,7 @@ public class BusSystem {
 						}
 					}
 				}
-				/*
-				if (searchTrip.get(inputLine) != null) {
-					int i = searchTrip.get(inputLine);
-					String line = stop_time.get(i);
-					String[] lines = line.split(",");
-					String[] times = lines[1].split(":");
-					String hours = "";
-					
-					if (times[0].charAt(0) == ' ') {
-						for (int j = 0; j< times[0].chars().count()-1; j++) {
-							hours += times[0].charAt(j+1);
-						}
-					}
-					
-					else {
-						hours = times[0];
-					}
-					
-					if (Integer.parseInt(times[0])>24 || Integer.parseInt(times[1])>59 || Integer.parseInt(times[2])>59) {
-						System.out.println("Invalid time. Please try again.");
-					}
-					else {
-						System.out.println(stop_times_line1);
-						
-						
-						for (String key:searchTrip.keysThatMatch(inputLine)) {
-							int j = searchTrip.get(key);
-							System.out.println(stop_time.get(j));	
-						}
-					}
-				}
-				
-				else {
-					System.out.println("Wrong format. Please try again\n");	
-				}
-				*/
 			}
-			
 			else if (!select.equals("Exit") && !select.equals("ShortestPath") && !select.equals("SearchBusStop") && !select.equals("SearchTrip")) {
 				System.out.println("You haven't selected a feature. Please try again.\n");	
 			}
@@ -330,9 +289,7 @@ public class BusSystem {
 			} catch (IllegalArgumentException e) {	
 				//e.printStackTrace();
 				System.out.println("Invalid stopID. Please try again\n");
-			}
-			
-			
+			}		
 		}
 		
 	}
